@@ -3,7 +3,6 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(OFFLINE_MAIN)/include/eigen3 \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -25,7 +24,8 @@ pkginclude_HEADERS = \
   EvalTower.h \
   QAExample.h \
   QAG4SimulationEicCalorimeter.h \
-  QAG4SimulationEicCalorimeterSum.h
+  QAG4SimulationEicCalorimeterSum.h \
+  SamplingFractionReco.h
 
 ROOTDICTS = \
   EvalCluster_Dict.cc \
@@ -49,7 +49,8 @@ libeicqa_modules_la_SOURCES = \
   EvalRootTTreeReco.cc \
   QAExample.cc \
   QAG4SimulationEicCalorimeter.cc \
-  QAG4SimulationEicCalorimeterSum.cc
+  QAG4SimulationEicCalorimeterSum.cc \
+  SamplingFractionReco.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
