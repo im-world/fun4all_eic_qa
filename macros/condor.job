@@ -1,9 +1,10 @@
 Universe 	= vanilla
 Executable 	= myscript.csh
-notification 	= Never
+notification 	= Complete
+notify_user	= emailHere
 Output  	= condor.out
 Error           = condor.err
-Log  		= /dev/null
+Log  		= condor.log
 # in case your script is in another directory, set initialdir to it
 #Initialdir  	= 
 # Jobs by default are allowed 1.8Gb of RAM, you need to ask for more if needed
@@ -11,3 +12,4 @@ Log  		= /dev/null
 # charges your priority for it)
 #  request_memory = 4.1GB
 Queue
+

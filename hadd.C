@@ -15,11 +15,11 @@ TFile *Target;
 void MergeRootfile( TDirectory *target, TList *sourcelist );
  
  
-void hadd() {
+void hadd(TString detector) {
   // Prepare the files to me merged
-  TString detector;
-  std::cout<<"Please enter the name of the detector (all caps): ";
-  std::cin>>detector;
+
+  //std::cout<<"Please enter the name of the detector (all caps): ";
+  //std::cin>>detector;
 
   if(gSystem->AccessPathName("macros/Eval_" + detector + ".root")) {
     gSystem->CopyFile("hsimple.root", "macros1/Eval_" + detector + ".root");

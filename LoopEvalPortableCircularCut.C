@@ -13,10 +13,8 @@
   authors - Sagar Joshi      (ee190002054@iiti.ac.in)
             Siddhant Rathi   (me190003061@iiti.ac.in)
 	    
-  version - 1.0
-
+  version - 1.1
 */
-
 
 #include <iostream>
 #include <eicqa_modules/EvalRootTTree.h>
@@ -51,39 +49,45 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
   long double total_te_CircularCut = 0;
   long double total_ge = 0; 
 
-  int nSlices = 15; // Number of ge-axis slices in sigma_e vs ge plot 
-
-  //Initialising histogram variables
-
-  TH2D *te_minus_ge_by_ge_ge_EtaCut = new TH2D("te_minus_ge_by_ge_ge_EtaCut","#frac{#Delta e_{agg}}{truth e} vs truth e",200,0,30,200,-2,1);
-  TH2D *te_minus_ge_by_ge_ge_EtaCut_CircularCut = new TH2D("te_minus_ge_by_ge_ge_EtaCut_CircularCut","#frac{#Delta e_{agg}}{truth e} vs truth e",200,0,30,200,-2,1);
-  TH2D *te_minus_ge_by_ge_ge_EtaCut_temp = new TH2D("te_minus_ge_by_ge_ge_EtaCut_temp","#frac{#Delta e_{agg}}{truth e} vs truth e",nSlices,0,30,2000,-0.99,1);
-
-  TH2D *te_by_ge_ge_EtaCut = new TH2D("te_by_ge_ge_EtaCut","te_{agg}/ge vs ge",200,0,30,200,-0.5,1.5);
-  TH2D *te_by_ge_ge_EtaCut_CircularCut = new TH2D("te_by_ge_ge_EtaCut_CircularCut","te_{agg}/ge vs ge",200,0,30,200,-0.5,1.5);
-
-  TH2D *tphi_gphi_EtaCut = new TH2D("tphi_gphi_EtaCut","tphi vs gphi",200,-4,4,200,-4,4);
-  TH2D *tphi_gphi_EtaCut_CircularCut = new TH2D("tphi_gphi_EtaCut_CircularCut","tphi vs gphi",200,-4,4,200,-4,4);
-
-  TH2D *ttheta_gtheta_EtaCut = new TH2D("ttheta_gtheta_EtaCut","ttheta vs gtheta",200,0,0.6,200,0,0.6);
-  TH2D *ttheta_gtheta_EtaCut_CircularCut = new TH2D("ttheta_gtheta_EtaCut_CircularCut","ttheta vs gtheta",200,0,0.6,200,0,0.6);
-
-  TH2D *dphi_dtheta_EtaCut = new TH2D("dphi_dtheta_EtaCut","dphi vs dtheta",200,-1,1,200,-1,1);
-
-  TH1D *counts_towerCounts_EtaCut = new TH1D("counts_towerCounts_EtaCut","n_towers",200,-1,400);
-  TH1D *counts_towerCounts_EtaCut_CircularCut = new TH1D("counts_towerCounts_EtaCut_CircularCut","n_towers",200,-1,200);
-  
-  Double_t eta_min, eta_max, x_radius, y_radius;
-  TString cut_text, eRes, pRes;
+  int nSlicesx; // Number of ge-axis slices in sigma_e vs ge plot 
+  int nSlicesy; // Number of sigma_e-axis slices in sigma_e vs ge plot
+  Double_t eta_min, eta_max; // Eta range of detectors
+  Double_t x_radius, y_radius; // Length of semi-minor and semi-major axes of circular (elliptical) cut
+  Double_t fit_min, fit_max; // Fit range of the first slice of [(te-ge)/ge vs ge] plot
+  Double_t ttheta_gtheta_min, ttheta_gtheta_max; // Range of both axes in ttheta vs gtheta plot 
+  Double_t towerCounts_max, towerCounts_CircularCut_max; // Maximum value of x axis in 1d distribution showing number of towers
+  Double_t sigma_min, sigma_max; // Range of Y-axis in sigma_e vs ge plot
+  Double_t mean_min, mean_max; // Range of Y-axis in mean_e vs ge plot
+  Double_t chi2_min, chi2_max; // Range of Y-axis in chi2_e vs ge plot
+  Double_t recalibration_factor; // Number divided from entries of [(te-ge)/ge vs ge] plot for recalibration
+  Double_t te_minus_ge_by_ge_ge_min, te_minus_ge_by_ge_ge_max; // Range of y-axis in [(te-ge)/ge vs ge] plot
+  TString cut_text, eRes, eRes1; 
 
   if (detector == "FEMC"){
-    x_radius = 0.15; //radius of circular cut
-    y_radius = 0.4;
+    x_radius = 0.13; 
+    y_radius = 0.40; 
+    fit_min = 0;
+    fit_max = 0.4;
     eta_min = 1.3;
     eta_max = 3.3;
+    sigma_min = 0;
+    sigma_max = 0.5;
+    mean_min = 0.15;
+    mean_max = 0.3;
+    chi2_min = 0;
+    chi2_max = 1.82;
+    ttheta_gtheta_min = 0;
+    ttheta_gtheta_max = 0.6;
+    towerCounts_max = 400;
+    towerCounts_CircularCut_max = 200;
+    recalibration_factor = 0.6911;
+    te_minus_ge_by_ge_ge_min = -0.99;
+    te_minus_ge_by_ge_ge_max = 1;
     cut_text = " {1.3 < true_eta < 3.3} ";
     eRes = "0.02 + 0.08/sqrt(x) + 0.02/x";
-    pRes = "(e-)";
+    eRes1 = "0.02 + 0.08/#sqrt{ge} + 0.02/ge";
+    nSlicesx = 15;
+    nSlicesy = 1000;
 
     if(debug==1){
       std::cout<<"FEMC eta cut & circular cut applied"<<"\n\n";
@@ -91,27 +95,61 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
   }
 
   else if(detector == "EEMC"){
-    x_radius = 0.15; //radius of circular cut
-    y_radius = 0.4;    
+    x_radius = 0.10; 
+    y_radius = 0.40;   
+    fit_min = 0.14;
+    fit_max = 0.21; 
     eta_min = -3.5;
     eta_max = -1.7;
+    sigma_min = 0;
+    sigma_max = 0.3;
+    mean_min = 0.15;
+    mean_max = 0.19;
+    chi2_min = 0;
+    chi2_max = 3.1;
+    ttheta_gtheta_min = 2.7;
+    ttheta_gtheta_max = 3.1;
+    towerCounts_max = 400;
+    towerCounts_CircularCut_max = 200;
+    recalibration_factor = 0.8257;
+    te_minus_ge_by_ge_ge_min = 0.1;
+    te_minus_ge_by_ge_ge_max = 0.25;
     cut_text = " {-3.5 < true_eta < -1.7} ";
     eRes = "0.01 + 0.025/sqrt(x) + 0.01/x";
-    pRes = "(e-)";
+    eRes1 =  "0.01 + 0.025/#sqrt{ge} + 0.01/ge";
+    nSlicesx = 10;
+    nSlicesy = 350;
 
-    if(debug==1){
+    if(debug==1){ 
       std::cout<<"EEMC eta cut & circular cut applied"<<"\n\n";
     }
   }
 
   else if(detector == "CEMC"){
-    x_radius = 0.15; //radius of circular cut
-    y_radius = 0.4;
+    x_radius = 0.10; 
+    y_radius = 0.20;
+    fit_min = -0.3;
+    fit_max = 0.6;
     eta_min = -1.5;
     eta_max = 1.2;
+    sigma_min = 0;
+    sigma_max = 0.5;
+    mean_min = 0.14;
+    mean_max = 0.26;
+    chi2_min = 0;
+    chi2_max = 1.42;
+    ttheta_gtheta_min = 0.45;
+    ttheta_gtheta_max = 2.6;
+    towerCounts_max = 400;
+    towerCounts_CircularCut_max = 200;
+    recalibration_factor = 1.385;
+    te_minus_ge_by_ge_ge_min = -0.99;
+    te_minus_ge_by_ge_ge_max = 1;
     cut_text = " {-1.5 < true_eta < 1.2} ";
     eRes = "0.025 + 0.13/sqrt(x) + 0.02/x";
-    pRes = "(e-)";
+    eRes1 = "0.025 + 0.23/#sqrt{ge} + 0.02/ge";
+    nSlicesx = 15;
+    nSlicesy = 1000;
 
     if(debug==1){
       std::cout<<"CEMC eta cut & circular cut applied"<<"\n\n";
@@ -119,13 +157,30 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
   }
 
   else if(detector == "FHCAL"){
-    x_radius = 0.2; //radius of circular cut
+    x_radius = 0.2; 
     y_radius = 0.5;
+    fit_min = -0.35;
+    fit_max = -0.05;
     eta_min = 1.2;
     eta_max = 3.5;
+    sigma_min = 0;
+    sigma_max = 0.5;
+    mean_min = 0.5;
+    mean_max =0.95;
+    chi2_min = 0;
+    chi2_max = 1.82;
+    ttheta_gtheta_min = 0;
+    ttheta_gtheta_max = 0.6;
+    towerCounts_max = 400;
+    towerCounts_CircularCut_max = 200;
+    recalibration_factor = 1;
+    te_minus_ge_by_ge_ge_min = -0.99;
+    te_minus_ge_by_ge_ge_max = 1;
     cut_text = " {1.2 < true_eta < 3.5} ";
     eRes = "1";
-    pRes = "(e-)";
+    eRes1 = "1";
+    nSlicesx = 15;
+    nSlicesy = 1000;
 
     if(debug==1){
       std::cout<<"FHCAL eta cut & circular cut applied"<<"\n\n";
@@ -133,13 +188,30 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
   }
 
   else if(detector == "HCALIN"){
-    x_radius = 0.15; //radius of circular cut
+    x_radius = 0.15; 
     y_radius = 0.4;
+    fit_min = -0.35;
+    fit_max = -0.05;
     eta_min = -1.1;
     eta_max = 1.1;
+    sigma_min = 0;
+    sigma_max = 0.5;
+    mean_min = 0.5;
+    mean_max = 0.95;
+    chi2_min = 0;
+    chi2_max = 1.82;
+    ttheta_gtheta_min = 0;
+    ttheta_gtheta_max = 0.6;
+    towerCounts_max = 400;
+    towerCounts_CircularCut_max = 200;
+    recalibration_factor = 1;
+    te_minus_ge_by_ge_ge_min = -0.99;
+    te_minus_ge_by_ge_ge_max = 1;
     cut_text = " {-1.1 < true_eta < 1.1} ";
     eRes = "1";
-    pRes = "(e-)";
+    eRes1 = "1";
+    nSlicesx = 15;
+    nSlicesy = 1000;
 
     if(debug==1){
       std::cout<<"HCALIN eta cut & circular cut applied"<<"\n\n";
@@ -147,13 +219,30 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
   }
 
   else if(detector == "HCALOUT"){
-    x_radius = 0.15; //radius of circular cut
+    x_radius = 0.15; 
     y_radius = 0.4;
+    fit_min = -0.35;
+    fit_max = -0.05;
     eta_min = -1.1;
     eta_max = 1.1;
+    sigma_min = 0;
+    sigma_max = 0.5;
+    mean_min = 0.5;
+    mean_max = 0.95;
+    chi2_min = 0;
+    chi2_max = 1.82;
+    ttheta_gtheta_min = 0;
+    ttheta_gtheta_max = 0.6;
+    towerCounts_max = 400;
+    towerCounts_CircularCut_max = 200;
+    recalibration_factor = 1;
+    te_minus_ge_by_ge_ge_min = -0.99;
+    te_minus_ge_by_ge_ge_max = 1;
     cut_text = " {-1.1 < true_eta < 1.1} ";
     eRes = "1";
-    pRes = "(e-)";
+    eRes1 = "1";
+    nSlicesx = 15;
+    nSlicesy = 1000;
       
     if(debug==1){
       std::cout<<"HCALOUT eta cut & circular cut applied"<<"\n\n";
@@ -164,6 +253,27 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
     std::cout<<"Please try again.";
     return 1;
   }
+
+  //Initialising histogram variables
+
+  TH2D *te_minus_ge_by_ge_ge_EtaCut = new TH2D("te_minus_ge_by_ge_ge_EtaCut","#frac{#Delta e_{agg}}{truth e} vs truth e",200,0,30,200,-1.5,1);
+  TH2D *te_minus_ge_by_ge_ge_EtaCut_CircularCut = new TH2D("te_minus_ge_by_ge_ge_EtaCut_CircularCut","#frac{#Delta e_{agg}}{truth e} vs truth e",200,0,30,200,-1.5,1);// 2 for CEMC
+  TH2D *te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated = new TH2D("te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated","#frac{#Delta e_{agg}}{truth e} vs truth e",200,0,30,200,-1.5,1);
+  TH2D *te_minus_ge_by_ge_ge_EtaCut_temp = new TH2D("te_minus_ge_by_ge_ge_EtaCut_temp","#frac{#Delta e_{agg}}{truth e} vs truth e",nSlicesx,0,30,nSlicesy,te_minus_ge_by_ge_ge_min,te_minus_ge_by_ge_ge_max); // histogram from which mean vs ge, sigma vs ge, and reduced_chi2 vs ge plots are derived
+
+  TH2D *te_by_ge_ge_EtaCut = new TH2D("te_by_ge_ge_EtaCut","te_{agg}/ge vs ge",200,0,30,200,-0.5,1.5);
+  TH2D *te_by_ge_ge_EtaCut_CircularCut = new TH2D("te_by_ge_ge_EtaCut_CircularCut","te_{agg}/ge vs ge",200,0,30,200,-0.5,3.5);
+
+  TH2D *tphi_gphi_EtaCut = new TH2D("tphi_gphi_EtaCut","tphi vs gphi",200,-4,4,200,-4,4);
+  TH2D *tphi_gphi_EtaCut_CircularCut = new TH2D("tphi_gphi_EtaCut_CircularCut","tphi vs gphi",200,-4,4,200,-4,4);
+
+  TH2D *ttheta_gtheta_EtaCut = new TH2D("ttheta_gtheta_EtaCut","ttheta vs gtheta",200,ttheta_gtheta_min,ttheta_gtheta_max,200,ttheta_gtheta_min,ttheta_gtheta_max);
+  TH2D *ttheta_gtheta_EtaCut_CircularCut = new TH2D("ttheta_gtheta_EtaCut_CircularCut","ttheta vs gtheta",200,ttheta_gtheta_min,ttheta_gtheta_max,200,ttheta_gtheta_min,ttheta_gtheta_max);
+ 
+  TH1D *counts_towerCounts_EtaCut = new TH1D("counts_towerCounts_EtaCut","n_towers",200,-1,towerCounts_max);
+  TH1D *counts_towerCounts_EtaCut_CircularCut = new TH1D("counts_towerCounts_EtaCut_CircularCut","n_towers",200,-1,towerCounts_CircularCut_max);
+
+  TH2D *dphi_dtheta_EtaCut = new TH2D("dphi_dtheta_EtaCut","dphi vs dtheta",200,-1,1,200,-1,1);
 
   T1->SetBranchAddress("DST#EvalTTree_" + detector,&evaltree1);
   
@@ -287,7 +397,11 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
       if(debug==1){
 	cout<<"(ge, (te_aggregate_CircularCut-ge)/ge): ("<<ge<<", "<<(te_aggregate_CircularCut-ge)/ge<<")\n";
       }
-      te_minus_ge_by_ge_ge_EtaCut_temp->Fill(ge, (te_aggregate_CircularCut-ge)/ge);
+      te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated->Fill(ge, ((te_aggregate_CircularCut/recalibration_factor)-ge)/ge);
+      if(debug==1){
+	cout<<"(ge, ((te_aggregate_CircularCut/recalibration_factor)-ge)/ge: ("<<ge<<", "<<((te_aggregate_CircularCut/recalibration_factor)-ge)/ge<<")\n";
+      }
+      te_minus_ge_by_ge_ge_EtaCut_temp->Fill(ge, ((te_aggregate_CircularCut/recalibration_factor)-ge)/ge);
    
       te_by_ge_ge_EtaCut->Fill(ge, te_aggregate/ge);
       if(debug==1){
@@ -315,8 +429,8 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
   }
 
   
-  TString arr[nSlices];
-  for(int sno = 0; sno < nSlices; sno++){
+  TString arr[nSlicesx];
+  for(int sno = 0; sno < nSlicesx; sno++){
     arr[sno] = TString::Itoa(sno + 1, 10); // Used for naming of slices
   }
 
@@ -324,7 +438,7 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
     std::cout<<"\nGenerating sigma_e vs ge plots\n\n";
   }
 
-  te_minus_ge_by_ge_ge_EtaCut_temp->FitSlicesY(0, 0, -1, 0, "QN");
+  te_minus_ge_by_ge_ge_EtaCut_temp->FitSlicesY(0, 2, -1, 0, "QN");
   TH2D *te_minus_ge_by_ge_ge_EtaCut_temp_2 = (TH2D*)gDirectory->Get("te_minus_ge_by_ge_ge_EtaCut_temp_2");
   TH2D *te_minus_ge_by_ge_ge_EtaCut_temp_1 = (TH2D*)gDirectory->Get("te_minus_ge_by_ge_ge_EtaCut_temp_1");
   TH2D *te_minus_ge_by_ge_ge_EtaCut_temp_chi2 = (TH2D*)gDirectory->Get("te_minus_ge_by_ge_ge_EtaCut_temp_chi2");
@@ -332,9 +446,9 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
 
   // Generating individual slices
 
-  TH1D* slices[nSlices];
+  TH1D* slices[nSlicesx];
 
-  for(int sno = 0; sno < nSlices; sno++){
+  for(int sno = 0; sno < nSlicesx; sno++){
     int plusOne = sno+1;
     TString sname = "slice " + arr[sno];
     slices[sno] = te_minus_ge_by_ge_ge_EtaCut_temp->ProjectionY(sname, plusOne, plusOne);
@@ -342,6 +456,7 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
 
   // Initialising fit functions 
   TF1 *fit = new TF1("fit", "gaus");   
+  TF1 *fit1 = new TF1("fit1","gaus",fit_min,fit_max);
   TEllipse *el1 = new TEllipse(0,0,x_radius,y_radius);
   TF1 *fExp = new TF1("fExp",eRes,0,30);
   TF1 *fTrue = new TF1("fTrue","[0] + [1]/sqrt(x) + [2]/x",0,30);  
@@ -377,6 +492,13 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
   te_minus_ge_by_ge_ge_EtaCut_CircularCut->GetYaxis()->SetTitle("(te_{agg}-ge)/ge");
   te_minus_ge_by_ge_ge_EtaCut_CircularCut->GetYaxis()->SetLabelSize(0.05);  
   te_minus_ge_by_ge_ge_EtaCut_CircularCut->GetYaxis()->SetTitleSize(0.05);
+
+  te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated->GetXaxis()->SetTitle("Generated Energy (GeV)");
+  te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated->GetXaxis()->SetLabelSize(0.05);  
+  te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated->GetXaxis()->SetTitleSize(0.05);
+  te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated->GetYaxis()->SetTitle("(te_{agg}-ge)/ge");
+  te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated->GetYaxis()->SetLabelSize(0.05);  
+  te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated->GetYaxis()->SetTitleSize(0.05);
 
   te_by_ge_ge_EtaCut->GetXaxis()->SetTitle("Generated Energy (GeV)");
   te_by_ge_ge_EtaCut->GetXaxis()->SetLabelSize(0.05);  
@@ -451,7 +573,7 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
   te_minus_ge_by_ge_ge_EtaCut_temp_1->GetYaxis()->SetTitleSize(0.05);
   //te_minus_ge_by_ge_ge_EtaCut_1->SetTitle("mean_{e_{agg}} vs true_e" + cut_text);
 	
-  for(int sno = 0; sno < nSlices; sno++){
+  for(int sno = 0; sno < nSlicesx; sno++){
     slices[sno]->GetXaxis()->SetTitle("#Delta e^{agg}/ ge");
     slices[sno]->GetXaxis()->SetLabelSize(0.05);  
     slices[sno]->GetXaxis()->SetTitleSize(0.05);
@@ -477,15 +599,40 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
   f->GetList()->Add(dphi_dtheta_EtaCut);
   f->GetList()->Add(te_minus_ge_by_ge_ge_EtaCut);
   f->GetList()->Add(te_minus_ge_by_ge_ge_EtaCut_CircularCut);
+  f->GetList()->Add(te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated);
   f->GetList()->Add(te_minus_ge_by_ge_ge_EtaCut_temp_2);
   f->GetList()->Add(te_minus_ge_by_ge_ge_EtaCut_temp_1);
   f->GetList()->Add(te_minus_ge_by_ge_ge_EtaCut_temp_chi2);
   
-  for(int sno = 0; sno < nSlices; sno++){
+  for(int sno = 0; sno < nSlicesx; sno++){
     f->GetList()->Add(slices[sno]);
   }
 
   f->Write();
+
+  gStyle -> SetOptStat(11);
+  gStyle -> SetOptFit(112);
+  
+  int sno = 0;
+  TString plusOne = (TString)(sno + 1);
+  TString nameF = detector + "_sigmaE_slice" + arr[sno] + "_EtaCut_CircularCut.png";
+  slices[sno] -> Fit("fit1", "R+");
+  slices[sno] -> Draw("hist same");
+  c->Print(nameF);
+
+  double_t mean = fit1->GetParameter(1);
+  double_t mean_error = fit1->GetParError(1);
+  double_t sigma = fit1->GetParameter(2);
+  double_t sigma_error = fit1->GetParError(2); 
+  double_t chi2 = (fit1->GetChisquare())/(fit1->GetNDF());
+ 
+  TLine *Mean = new TLine(0,mean,30.0/nSlicesx,mean);
+  TLine *Sigma = new TLine(0,sigma,30.0/nSlicesx,sigma);
+  TLine *Chi2 = new TLine(0,chi2,30.0/nSlicesx,chi2);
+  TLine *Periphery_Chi2 = new TLine(30.0/nSlicesx,0,30.0/nSlicesx,chi2);
+  TLine *Sigma_error = new TLine(30.0/(2.0*nSlicesx),sigma-(sigma_error/2),30.0/(2.0*nSlicesx),sigma+(sigma_error/2));
+  TLine *Mean_error = new TLine(30.0/(2.0*nSlicesx),mean-(mean_error/2),30.0/(2.0*nSlicesx),mean+(mean_error/2));
+  TLine *Point = new TLine(30.0/(2.0*nSlicesx),sigma,30.0/(2.0*nSlicesx),sigma);
 
   if(print==1){
     if(debug==1){
@@ -494,24 +641,49 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
 
     gStyle -> SetOptStat(0);
 
+    te_minus_ge_by_ge_ge_EtaCut_temp_1->SetAxisRange(mean_min,mean_max,"Y");
     te_minus_ge_by_ge_ge_EtaCut_temp_1->Draw("colz");
+    Mean->SetLineColor(1);
+    Mean->SetLineWidth(1); 
+    Mean_error->SetLineColor(1);
+    Mean_error->SetLineWidth(1);
+    Mean->Draw("same");
+    Mean_error->Draw("same");
     c->Print(detector + "_meanE_ge_EtaCut_CircularCut.png");
+
+    te_minus_ge_by_ge_ge_EtaCut_temp_chi2->SetAxisRange(chi2_min,chi2_max,"Y");
     te_minus_ge_by_ge_ge_EtaCut_temp_chi2->Draw("colz");
+    Chi2->SetLineColor(1);
+    Chi2->SetLineWidth(1); 
+    Periphery_Chi2->SetLineColor(1);
+    Periphery_Chi2->SetLineWidth(1);
+    Chi2->Draw("same");
+    Periphery_Chi2->Draw("same");
     c->Print(detector + "_chi2E_ge_EtaCut_CircularCut.png");
  
     gStyle -> SetOptStat(0);
     gStyle -> SetOptFit(0);
+
+    Sigma->SetLineColor(1);
+    Sigma->SetLineWidth(1); 
+    Sigma_error->SetLineColor(1);
+    Sigma_error->SetLineWidth(1);
+    Point->SetLineColor(3);
+    Point->SetLineWidth(5);
     fExp->SetLineColor(4); //38
     fTrue->SetLineColor(2); //46
   
     te_minus_ge_by_ge_ge_EtaCut_temp_2->SetMarkerStyle(kFullCircle);
     te_minus_ge_by_ge_ge_EtaCut_temp_2->SetMarkerColor(46); //30
     te_minus_ge_by_ge_ge_EtaCut_temp_2->SetMarkerSize(0.75);
-    te_minus_ge_by_ge_ge_EtaCut_temp_2->SetAxisRange(0,0.5,"Y");
+    te_minus_ge_by_ge_ge_EtaCut_temp_2->SetAxisRange(sigma_min,sigma_max,"Y");
 
     te_minus_ge_by_ge_ge_EtaCut_temp_2->Fit("fTrue", "M+");
     te_minus_ge_by_ge_ge_EtaCut_temp_2->Draw("same");
     fExp->Draw("same");
+    Sigma->Draw("same");
+    Sigma_error->Draw("same");
+    Point->Draw("same");
   
     TLegend* legend = new TLegend(1.75,1.75);
     legend->SetHeader("Legend", "C");
@@ -519,19 +691,18 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
     legend->AddEntry((TObject*)0,"","");
     legend->AddEntry(fTrue, "p_{0} + p_{1}/#sqrt{ge} + p_{2}/ge (Fitted)", "l");
     legend->AddEntry((TObject*)0,"","");
-    legend->AddEntry(fExp, eRes + pRes, "l");
+    legend->AddEntry(fExp, eRes1, "l");
     legend->AddEntry((TObject*)0,"(Requirement)","" );
     legend->SetTextSize(0.033);
     legend->Draw();
 
-    cout<<"reduced_chi2 of fit: "<<fTrue->GetChisquare()<<"\n";
-    cout<<"parameters: "<<fTrue->GetParameters()<<"\n";
+    cout<<"reduced_chi2 of fit: "<<fTrue->GetChisquare()/fTrue->GetNDF()<<"\n";
 
     c->Print(detector + "_sigmaE_ge_EtaCut_CircularCut.png");
 
     gStyle -> SetOptStat(11);
-    gStyle -> SetOptFit(102);
-    for(int sno = 0; sno < nSlices; sno++){
+    gStyle -> SetOptFit(112);
+    for(int sno = 1; sno < nSlicesx; sno++){
       TString plusOne = (TString)(sno + 1);
       TString nameF = detector + "_sigmaE_slice" + arr[sno] + "_EtaCut_CircularCut.png";
       slices[sno] -> Fit("fit", "M+");
@@ -565,6 +736,8 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
     c->Print(detector + "_te_minus_ge_by_ge_ge_EtaCut.png");
     te_minus_ge_by_ge_ge_EtaCut_CircularCut->Draw("colz");
     c->Print(detector + "_te_minus_ge_by_ge_ge_EtaCut_CircularCut.png");
+    te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated->Draw("colz");
+    c->Print(detector + "_te_minus_ge_by_ge_ge_EtaCut_CircularCut_Recalibrated.png");
 
     c->SetCanvasSize(700,700);
     dphi_dtheta_EtaCut->Draw("colz");
@@ -578,7 +751,8 @@ void LoopEvalPortableCircularCut(TString detector, int print = 1, int debug = 0)
 
     std::cout << "The total_te is: " << total_te << endl;
     std::cout << "The total_te_CircularCut is: " << total_te_CircularCut << endl;
-    std::cout << "The total ge is: " << total_ge << endl; 
+    std::cout << "The total_ge is: " << total_ge << endl; 
+    
   }
   c->Close();
   std::cout<<"\n\nDone\n----------------------------------------------------------------------\n\n";

@@ -10,7 +10,7 @@
  printenv
   # this is how you run your Fun4All_G4_sPHENIX.C macro in batch: 
 
- root.exe -q -b LoopEvalMultiHCircularCut.C\(0, 1\) > HCALIN_HCALOUT_CEMC_CircularCut.txt
+ root.exe -q -b 'LoopEvalMultiHCircularCut.C(0, 1)' > HCALIN_HCALOUT_CEMC_CircularCut.txt
  
  echo Done
 
