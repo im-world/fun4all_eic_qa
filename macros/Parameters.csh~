@@ -1,0 +1,20 @@
+#!/usr/local/bin/tcsh
+ setenv HOME /eic/u/$LOGNAME
+ source /etc/csh.login
+ foreach i (/etc/profile.d/*.csh)
+   source $i
+ end
+ source $HOME/.login
+ source /cvmfs/eic.opensciencegrid.org/default/opt/fun4all/core/bin/eic_setup.csh -n
+
+
+set particle = pi-                    #e-, pi-, etc.
+set email = me190003061@iiti.ac.in    #email address to notify condor job completion
+set events = 10000                    #events per batch (10 batches)
+
+ sed -i 's/pi-/$particle/g' Fun4All_G4_EICDetector.C
+ sed -i 's/emailHere/$email/g' condor.job
+ sed -i 's/emailHere/$email/g' ../hadd.job
+ sed -i 's/10/$events/g' myscript.csh
+
+ echo Parameters Set

@@ -1,0 +1,14 @@
+#Sets up the statistics to use Interface.C readily
+
+JOB MAIN {
+    Universe		= vanilla
+    Executable 		= SetUp.csh
+    notification 	= Complete
+    notify_user		= $email
+    Output  		= SetUp.out
+    Error       	= SetUp.err
+    Log 		= SetUp.log
+}
+
+
+SCRIPT POST MAIN hadd.csh

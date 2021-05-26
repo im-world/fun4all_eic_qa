@@ -1,0 +1,8 @@
+#Sets up the statistics to use Interface.C readily
+
+JOB STATS condor.job [DIR macros]
+JOB MERGE hadd.job
+
+SCRIPT PRE STATS Parameters.csh
+
+PARENT STATS CHILD MERGE
