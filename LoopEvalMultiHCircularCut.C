@@ -14,7 +14,6 @@
             Siddhant Rathi   (me190003061@iiti.ac.in)
 	    
   version - 1.1
-
 */
 
 #include <iostream>
@@ -73,14 +72,14 @@ void LoopEvalMultiHCircularCut(int print = 1, int debug = 0)
   Double_t chi2_min, chi2_max; // Range of Y-axis in chi2_e vs ge plot
   Double_t recalibration_factor; // Number divided from entries of [(te-ge)/ge vs ge] plot for recalibration   
   
-  fit_min = -0.7;
-  fit_max = 0.45;
+  fit_min = -0.8;
+  fit_max = 1.0;
   eta_min = -1.1;
   eta_max = 1.1;
   sigma_min = 0;
-  sigma_max = 1;
-  mean_min = 0.0;
-  mean_max = 0.15;
+  sigma_max = 1.2;
+  mean_min = -0.6;
+  mean_max = 0.2;
   chi2_min = 0;
   chi2_max = 1.60;
   recalibration_factor = 0.7461;
