@@ -59,7 +59,7 @@ void LoopEvalMultiHCircularCut(int print = 1, int debug = 0)
   long double total_te_CircularCut = 0;
   long double total_ge = 0; 
 
-  int nSlicesx = 15; // Number of ge-axis slices taken for making sigma_e vs ge plot
+  int nSlicesx = 10; // Number of ge-axis slices taken for making sigma_e vs ge plot
   Double_t eta_min, eta_max; // Eta range of detectors
   Double_t x_radius_HCALIN = 0.15; // Length of semi-minor axis of circular (elliptical) in HCALIN
   Double_t y_radius_HCALIN = 0.25; // Length of semi-major axis of circular (elliptical) in HCALIN
@@ -79,11 +79,11 @@ void LoopEvalMultiHCircularCut(int print = 1, int debug = 0)
   eta_max = 1.1;
   sigma_min = 0;
   sigma_max = 1;
-  mean_min = -0.38;
+  mean_min = 0.0;
   mean_max = 0.15;
   chi2_min = 0;
-  chi2_max = 1.82;
-  recalibration_factor = 1.0;
+  chi2_max = 1.60;
+  recalibration_factor = 0.7461;
 
   TString cut_text = " {-1.1 < geta < 1.1} ";
   
@@ -387,7 +387,7 @@ void LoopEvalMultiHCircularCut(int print = 1, int debug = 0)
   // Initialising fit functions 
   TF1 *fit = new TF1("fit", "gaus");   
   TF1 *fit1 = new TF1("fit1","gaus",fit_min,fit_max);
-  TF1 *fExp = new TF1("fExp","0.1 + 0.5/sqrt(x)",0,30);
+  TF1 *fExp = new TF1("fExp","0.1 + 1.0/sqrt(x)",0,30);
   TF1 *fTrue = new TF1("fTrue","[0] + [1]/sqrt(x)",0,30);
 
 
@@ -564,7 +564,7 @@ void LoopEvalMultiHCircularCut(int print = 1, int debug = 0)
     legend->AddEntry((TObject*)0,"","");
     legend->AddEntry(fTrue, "p_{0} + p_{1}/#sqrt{ge} (Fitted)", "l");
     legend->AddEntry((TObject*)0,"","");
-    legend->AddEntry(fExp, "0.1 + 0.5/#sqrt{ge} (Requirement)", "l");
+    legend->AddEntry(fExp, "0.1 + 1.0/#sqrt{ge} (Requirement)", "l");
     legend->SetTextSize(0.033);
     legend->Draw();
 

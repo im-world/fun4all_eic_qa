@@ -15,7 +15,7 @@ set events = 10000                    #events per batch (10 batches)
  sed -i "s/pi-/$particle/g" macros/Fun4All_G4_EICDetector.C
  sed -i "s/emailHere/$email/g" macros/condor.job
 # sed -i "s/emailHere/$email/g" hadd.job
- sed -i "s/10/$events/g" macros/myscript.csh
+ sed -i "s/nEvents/$events/g" macros/myscript.csh
 
 cp -r macros macros1
 cp -r macros macros2
