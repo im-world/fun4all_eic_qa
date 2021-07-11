@@ -264,6 +264,8 @@ int Fun4All_G4_EICDetector(
   Enable::FHCAL_TOWER = Enable::FHCAL && true;
   Enable::FHCAL_CLUSTER = Enable::FHCAL_TOWER && true;
 //  Enable::FHCAL_EVAL = Enable::FHCAL_CLUSTER && true;
+// set our sampling fraction based on electrons
+  G4FHCAL::sampling_fraction = 0.018;
 
   // EICDetector geometry - 'electron' direction
   Enable::EEMC = true;
